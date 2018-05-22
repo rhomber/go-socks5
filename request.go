@@ -359,12 +359,15 @@ type closeWriter interface {
 func proxy(dst io.Writer, src io.Reader, errCh chan error) {
 	pair, err := splice.Get()
 
-	pdst := dst.(*os.File)
-	psrc := src.(*os.File)
+	TcpDst := dst.(*net.TCPConn)
+	TcpSrc := src.(*net.TCPConn)
+
+	FdDst, _ := TcpDst.File()
+	FdSrc, _ := TcpSrc.File()
 
 	if err == nil {
 		for {
-			w, err := splice.SpliceCopy(pdst, psrc, pair)
+			w, err := splice.SpliceCopy(FdDst, FdSrc, pair)
 			if err != nil || w == 0 {
 				break
 			}
