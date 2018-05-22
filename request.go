@@ -79,6 +79,7 @@ type Request struct {
 	// AddrSpec of the actual destination (might be affected by rewrite)
 	realDestAddr *AddrSpec
 	bufConn      io.Reader
+	Conn         io.Reader
 }
 
 type conn interface {
@@ -87,7 +88,7 @@ type conn interface {
 }
 
 // NewRequest creates a new Request from the tcp connection
-func NewRequest(bufConn io.Reader) (*Request, error) {
+func NewRequest(bufConn io.Reader, Conn io.Reader) (*Request, error) {
 	// Read the version byte
 	header := []byte{0, 0, 0}
 	if _, err := io.ReadAtLeast(bufConn, header, 3); err != nil {
@@ -110,6 +111,7 @@ func NewRequest(bufConn io.Reader) (*Request, error) {
 		Command:  header[1],
 		DestAddr: dest,
 		bufConn:  bufConn,
+		Conn:     Conn,
 	}
 
 	return request, nil
@@ -199,7 +201,7 @@ func (s *Server) handleConnect(ctx context.Context, conn conn, req *Request) err
 
 	// Start proxying
 	errCh := make(chan error, 2)
-	go proxy(target, req.bufConn, errCh)
+	go proxy(target, req.Conn, errCh)
 	go proxy(conn, target, errCh)
 
 	// Wait
