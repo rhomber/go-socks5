@@ -368,6 +368,9 @@ func proxy(dst io.Writer, src io.Reader, errCh chan error) {
 	TcpDst := dst.(*net.TCPConn)
 	TcpSrc := src.(*net.TCPConn)
 
+	TcpSrc.SetReadBuffer(16 * 1024)
+	TcpDst.SetWriteBuffer(16 * 1024)
+
 	FdDst, _ := TcpDst.File()
 	FdSrc, _ := TcpSrc.File()
 
