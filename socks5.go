@@ -143,7 +143,7 @@ func (s *Server) ServeConn(conn net.Conn) error {
 		return err
 	}
 
-	request, err := NewRequest(bufConn)
+	request, err := NewRequest(bufConn, conn)
 	if err != nil {
 		if err == unrecognizedAddrType {
 			if err := sendReply(conn, addrTypeNotSupported, nil); err != nil {
