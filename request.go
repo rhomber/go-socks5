@@ -1,6 +1,7 @@
 package socks5
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"github.com/hanwen/go-fuse/splice"
@@ -198,6 +199,9 @@ func (s *Server) handleConnect(ctx context.Context, conn conn, req *Request) err
 	if err := sendReply(conn, successReply, &bind); err != nil {
 		return fmt.Errorf("Failed to send reply: %v", err)
 	}
+
+	bufConn, _ := req.bufConn.(*bufio.Reader)
+	bufConn.Discard(bufConn.Buffered())
 
 	// Start proxying
 	errCh := make(chan error, 2)
