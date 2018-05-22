@@ -363,6 +363,7 @@ type closeWriter interface {
 // down a dedicated channel
 func proxy(dst io.Writer, src io.Reader, errCh chan error) {
 	pair, err := splice.Get()
+	pair.MaxGrow()
 
 	TcpDst := dst.(*net.TCPConn)
 	TcpSrc := src.(*net.TCPConn)
