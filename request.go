@@ -6,7 +6,6 @@ import (
 	"github.com/hanwen/go-fuse/splice"
 	"io"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 )
