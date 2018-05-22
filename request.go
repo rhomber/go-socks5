@@ -3,8 +3,10 @@ package socks5
 import (
 	"context"
 	"fmt"
+	"github.com/hanwen/go-fuse/splice"
 	"io"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -355,9 +357,19 @@ type closeWriter interface {
 // proxy is used to suffle data from src to destination, and sends errors
 // down a dedicated channel
 func proxy(dst io.Writer, src io.Reader, errCh chan error) {
-	_, err := io.Copy(dst, src)
-	if tcpConn, ok := dst.(closeWriter); ok {
-		tcpConn.CloseWrite()
+	pair, err := splice.Get()
+
+	pdst := dst.(*os.File)
+	psrc := src.(*os.File)
+
+	if err == nil {
+		for {
+			w, err := splice.SpliceCopy(pdst, psrc, pair)
+			if err != nil || w == 0 {
+				break
+			}
+		}
+		pair.Close()
+		errCh <- err
 	}
-	errCh <- err
 }
