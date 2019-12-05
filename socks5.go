@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 )
 
 const (
@@ -54,6 +55,9 @@ type Config struct {
 type Server struct {
 	config      *Config
 	authMethods map[uint8]Authenticator
+	wg          sync.WaitGroup
+	listener    net.Listener
+	done        bool
 }
 
 // New creates a new Server and potentially returns an error
@@ -106,19 +110,36 @@ func (s *Server) ListenAndServe(network, addr string) error {
 
 // Serve is used to serve connections from a listener
 func (s *Server) Serve(l net.Listener) error {
+	s.done = false
+	s.listener = l
+
 	for {
-		conn, err := l.Accept()
+		conn, err := s.listener.Accept()
 		if err != nil {
+			if s.done {
+				break
+			}
 			return err
 		}
 		go s.ServeConn(conn)
 	}
+
+	s.wg.Wait()
+
 	return nil
+}
+
+func (s *Server) Quit() {
+	s.done = true
+	s.listener.Close()
 }
 
 // ServeConn is used to serve a single connection.
 func (s *Server) ServeConn(conn net.Conn) error {
+	s.wg.Add(1)
 	defer conn.Close()
+	defer s.wg.Done()
+
 	bufConn := bufio.NewReader(conn)
 
 	// Read the version byte
