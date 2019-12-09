@@ -1,8 +1,9 @@
 package socks5
 
 import (
-	"io"
 	"github.com/hanwen/go-fuse/v2/splice"
+	"io"
+	"net"
 )
 
 // proxy is used to suffle data from src to destination, and sends errors
@@ -34,4 +35,3 @@ func proxy(dst io.Writer, src io.Reader, errCh chan error) {
 		errCh <- err
 	}
 }
-
